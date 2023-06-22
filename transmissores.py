@@ -12,14 +12,14 @@ class TransmitterData:
         cont_repeticao = 0
         while cont_repeticao < self.cont_limite:
             if self.canal.esta_livre():
-                print(f"{self.name} \n--sensing --")
+                print(f"{self.name} \n--sensing the medium--")
                 if self.canal.canal_livre():
                     print("LIVRE!!")
                     print(f"{self.name} transmitindo {data}")
                     if self.canal.transmite_dado(data, self):
                         break
                 else:
-                    print(f"{self.name} OCUPADO!!!!")
+                    print(f"{self.name} está OCUPADO!!!!")
                     self.canal.backoff(cont_repeticao)
                     cont_repeticao += 1
             else:
@@ -70,5 +70,5 @@ class Canal:
     def backoff(self, cont_repeticao):
         max_backoff = 2 ** cont_repeticao
         tempo_backoff = random.uniform(0, max_backoff)
-        print(f"Aplicando backoff para {tempo_backoff} segundos. ")
+        print(f"Backoff em {tempo_backoff} segundos. ")
         time.sleep(tempo_backoff)
