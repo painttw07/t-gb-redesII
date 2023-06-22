@@ -1,57 +1,73 @@
 import time
 import random
-from threading import Thread
+#from threading import Thread
 
 class TransmitterData:
     def __init__(self, name, canal):
         self.name = name
         self.canal = canal
-        self.retry_limit = 5
+        self.cont_limite = 5
 
     def transmite(self, data):
-        retry_count = 0
-        while retry_count < self.retry_limit:
-            if self.canal.is_idle():
-                print(f"{self.name} está transmitindo:  {data}")
-                if self.canal.transmit_data(data, self):
-                    break
+        cont_repeticao = 0
+        while cont_repeticao < self.cont_limite:
+            if self.canal.esta_livre():
+                print(f"{self.name} sensing... {data}")
+                if self.canal.canal_livre():
+                    print(f"{self.name} transmitindo: {data}")
+                    if self.canal.transmite_data(data, self):
+                        break
+                else:
+                    print(f"{self.name} Detectando canal ocupado")
+                    self.canal.backoff(cont_repeticao)
+                    cont_repeticao += 1
             else:
-                print(f"{self.name} Aguardando........")
-                self.canal.perform_backoff(retry_count)
-                retry_count += 1
+                print(f"{self.name} Aguardando.....")
+                time.sleep(1)
 
-    def receive(self, data):
-        print(f"{self.name} received: {data}")
+    def recebe(self, data):
+        print(f"{self.name} recebido: {data}")
 
 class Canal:
     def __init__(self):
         self.transmitters = []
-        self.transmitting = None
+        self.transmitindo = None
 
     def add_transmissor(self, transmitter):
         self.transmitters.append(transmitter)
 
-    def is_idle(self):
-        return self.transmitting is None
+    def esta_livre(self):
+        return self.transmitindo is None
 
-    def transmit_data(self, data, transmitter):
-        self.transmitting = transmitter
-        for receiver in self.transmitters:
-            if receiver != transmitter:
-                if self.detect_collision():
-                    print("Colisão detectada!")
-                    self.transmitting = None
+    def canal_livre(self):
+        for transmitter in self.transmitters:
+            if transmitter != self.transmitindo:
+                if not self.detector_colisao() and not self.detecta_ocupado():
                     return False
-                receiver.receive(data)
-        self.transmitting = None
         return True
 
-    def detect_collision(self):
-        collision_prob = 0.2  # Probability of collision
-        return random.random() < collision_prob
+    def transmite_data(self, data, transmitter):
+        self.transmitindo = transmitter
+        for recebedor in self.transmitters:
+            if recebedor != transmitter:
+                if self.detector_colisao():
+                    print("Colisão detectada!")
+                    self.transmitindo = None
+                    return False
+                recebedor.recebe(data)
+        self.transmitindo = None
+        return True
 
-    def perform_backoff(self, retry_count):
-        max_backoff = 2 ** retry_count
-        backoff_time = random.uniform(0, max_backoff)
-        print(f"Aplicando backoff para {backoff_time} s. ")
-        time.sleep(backoff_time)
+    def detecta_ocupado(self):
+        ocupado_prob = 0.4  #probabilidade do canal estar ocupado
+        return random.random() < ocupado_prob
+
+    def detector_colisao(self):
+        prob_colisao = 0.2  # Probabilidade de haver colisão
+        return random.random() < prob_colisao
+
+    def backoff(self, cont_repeticao):
+        max_backoff = 2 ** cont_repeticao
+        tempo_backoff = random.uniform(0, max_backoff)
+        print(f"Aplicando backoff para {tempo_backoff} segundos. ")
+        time.sleep(tempo_backoff)
