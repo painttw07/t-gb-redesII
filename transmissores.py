@@ -12,13 +12,14 @@ class TransmitterData:
         cont_repeticao = 0
         while cont_repeticao < self.cont_limite:
             if self.canal.esta_livre():
-                print(f"{self.name} sensing... {data}")
+                print(f"{self.name} \n--sensing --")
                 if self.canal.canal_livre():
-                    print(f"{self.name} transmitindo: {data}")
-                    if self.canal.transmite_data(data, self):
+                    print("LIVRE!!")
+                    print(f"{self.name} transmitindo {data}")
+                    if self.canal.transmite_dado(data, self):
                         break
                 else:
-                    print(f"{self.name} Detectando canal ocupado")
+                    print(f"{self.name} OCUPADO!!!!")
                     self.canal.backoff(cont_repeticao)
                     cont_repeticao += 1
             else:
@@ -46,7 +47,7 @@ class Canal:
                     return False
         return True
 
-    def transmite_data(self, data, transmitter):
+    def transmite_dado(self, data, transmitter):
         self.transmitindo = transmitter
         for recebedor in self.transmitters:
             if recebedor != transmitter:
