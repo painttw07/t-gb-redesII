@@ -84,7 +84,7 @@ class Canal: #classe que representa o canal de comunicação que é compartilhad
 
         self.collision = any(transmissor.colidiu for transmissor in self.transmitters)
 
-    def perform_backoff(self, retry_count): #nao ta funcionando essa porr*
+    def perform_backoff(self, retry_count): #nao ta funcionando
         max_backoff = 2 ** retry_count
         backoff_time = random.uniform(0, max_backoff)
         print(f"Aplicando backoff para {backoff_time}segundos")
